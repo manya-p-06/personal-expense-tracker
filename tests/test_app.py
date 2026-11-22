@@ -79,3 +79,65 @@ def test_invalid_transaction():
     })
 
     assert response.status_code == 400
+
+
+def test_delete_transaction():
+    client = application.app.test_client()
+
+    add_response = client.post("/api/transactions", json={
+        "title": "Shopping",
+        "amount": 500,
+        "category": "Personal",
+        "transaction_type": "expense",
+        "transaction_date": "2026-11-22"
+    })
+
+    transaction_id = add_response.get_json()["id"]
+
+    delete_response = client.delete(
+        f"/api/transactions/{transaction_id}"
+    )
+
+    assert delete_response.status_code == 200
+
+    response = client.get("/api/transactions")
+    assert response.get_json() == []
+
+
+def test_invalid_transaction_type():
+    client = application.app.test_client()
+
+    response = client.post("/api/transactions", json={
+        "title": "Shopping",
+        "amount": 500,
+        "category": "Personal",
+        "transaction_type": "unknown",
+        "transaction_date": "2026-11-22"
+    })
+
+    assert response.status_code == 400
+
+
+def test_invalid_date():
+    client = application.app.test_client()
+
+    response = client.post("/api/transactions", json={
+        "title": "Shopping",
+        "amount": 500,
+        "category": "Personal",
+        "transaction_type": "expense",
+        "transaction_date": "invalid-date"
+    })
+
+    assert response.status_code == 400
+
+
+def test_missing_transaction_fields():
+    client = application.app.test_client()
+
+    response = client.post("/api/transactions", json={
+        "title": "Shopping",
+        "amount": 500
+    })
+
+    assert response.status_code == 400
